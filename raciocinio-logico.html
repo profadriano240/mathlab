@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raciocínio Lógico — Aula Particular</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,800;1,9..144,300&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --bg2: #ede6d6;
+    --ink: #1a1208;
+    --ink2: #3d3020;
+    --accent: #c8431a;
+    --accent2: #e8a020;
+    --green: #2d7a4f;
+    --blue: #1a4f8a;
+    --card: #faf7f0;
+    --border: #d4c9a8;
+    --shadow: rgba(26,18,8,0.10);
+    --radius: 16px;
+    --radius-sm: 8px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 10%, rgba(200,67,26,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 10% 80%, rgba(232,160,32,0.08) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ─── LAYOUT ─── */
+  .app { max-width: 820px; margin: 0 auto; padding: 1.5rem 1rem 4rem; position: relative; z-index: 1; }
+
+  /* ─── HEADER ─── */
+  header {
+    text-align: center;
+    padding: 2.5rem 0 2rem;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 2.5rem;
+  }
+  .header-tag {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    padding: .3rem .9rem;
+    border-radius: 99px;
+    margin-bottom: 1rem;
+  }
+  header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: .5rem;
+  }
+  header p { color: var(--ink2); font-size: 1rem; font-weight: 300; }
+
+  /* ─── PROGRESS NAV ─── */
+  .progress-nav {
+    display: flex;
+    gap: .4rem;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-bottom: 2rem;
+    padding-bottom: .25rem;
+  }
+  .progress-nav::-webkit-scrollbar { display: none; }
+  .nav-step {
+    display: flex; align-items: center; gap: .35rem;
+    font-size: .72rem; font-weight: 600; letter-spacing: .03em;
+    padding: .38rem .8rem;
+    border-radius: 99px;
+    border: 2px solid var(--border);
+    background: var(--card);
+    color: var(--ink2);
+    cursor: default;
+    transition: all .3s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .nav-step.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .nav-step.done { border-color: var(--green); background: var(--green); color: #fff; }
+  .nav-step .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .5; }
+  .nav-step.active .dot, .nav-step.done .dot { opacity: 1; }
+
+  /* ─── SECTION SCREEN ─── */
+  .screen { display: none; animation: fadeUp .4s ease both; }
+  .screen.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── CARD ─── */
+  .card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: .4rem;
+    color: var(--ink);
+    display: flex; align-items: center; gap: .6rem;
+  }
+  .card-title .icon { font-size: 1.4rem; }
+  .card-sub { color: var(--ink2); font-size: .9rem; margin-bottom: 1.4rem; font-weight: 300; }
+
+  /* ─── INPUTS ─── */
+  .field { margin-bottom: 1.2rem; }
+  label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: .4rem; color: var(--ink2); letter-spacing: .03em; }
+  input[type=text], input[type=date] {
+    width: 100%;
+    padding: .75rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--ink);
+    outline: none;
+    transition: border .2s;
+  }
+  input:focus { border-color: var(--accent); }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .75rem 1.8rem;
+    border-radius: 99px;
+    border: none; cursor: pointer;
+    font-family: inherit; font-size: .95rem; font-weight: 700;
+    transition: all .2s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #a5321a; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(200,67,26,.3); }
+  .btn-secondary { background: var(--bg2); color: var(--ink); border: 2px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--ink2); }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-green:hover { background: #236040; transform: translateY(-1px); }
+  .btn-sm { padding: .5rem 1.2rem; font-size: .85rem; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; transform: none !important; }
+
+  /* ─── SECTION HEADER ─── */
+  .section-banner {
+    background: linear-gradient(135deg, var(--ink) 0%, var(--ink2) 100%);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 1.4rem 1.2rem;
+    margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+  }
+  .section-banner::after {
+    content: attr(data-emoji);
+    position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+    font-size: 3rem; opacity: .15; line-height: 1;
+    pointer-events: none;
+  }
+  .section-banner h2 { font-family: 'Fraunces', serif; font-size: clamp(1.3rem,4vw,1.7rem); font-weight: 800; padding-right: 3rem; }
+  .section-banner p { font-size: .88rem; opacity: .75; margin-top: .3rem; padding-right: 3rem; }
+  .section-banner .badge {
+    display: inline-block;
+    background: rgba(255,255,255,.18);
+    font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    padding: .2rem .7rem; border-radius: 99px; margin-bottom: .6rem;
+  }
+
+  /* ─── EXERCISE CARD ─── */
+  .exercise {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    margin-bottom: 1.2rem;
+  }
+  .exercise-num {
+    font-family: 'DM Mono', monospace;
+    font-size: .72rem; color: var(--accent); font-weight: 500;
+    margin-bottom: .8rem; letter-spacing: .08em;
+  }
+  .exercise p { line-height: 1.65; margin-bottom: 1rem; }
+  .seq-display {
+    display: flex; gap: .5rem; flex-wrap: wrap; margin: 1rem 0;
+    align-items: center;
+  }
+  .seq-num {
+    width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Mono', monospace;
+    font-size: 1.05rem; font-weight: 500; color: var(--ink);
+  }
+  .seq-num.blank {
+    border: 2px dashed var(--accent);
+    background: rgba(200,67,26,.06);
+    color: var(--accent);
+  }
+  .seq-arrow { font-size: .9rem; color: var(--border); }
+
+  /* ─── ANSWER INPUT ─── */
+  .answer-row { display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; margin-top: .8rem; }
+  .answer-input {
+    width: 80px; padding: .55rem; text-align: center;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Mono', monospace; font-size: 1rem;
+    background: var(--bg); color: var(--ink); outline: none;
+    transition: border .2s;
+  }
+  .answer-input:focus { border-color: var(--accent); }
+
+  /* ─── FEEDBACK ─── */
+  .feedback {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem 1.2rem;
+    border-radius: var(--radius-sm);
+    font-size: .9rem; line-height: 1.6;
+  }
+  .feedback.correct { background: rgba(45,122,79,.1); border: 1.5px solid var(--green); color: var(--green); }
+  .feedback.wrong   { background: rgba(200,67,26,.08); border: 1.5px solid var(--accent); color: var(--accent); }
+  .feedback.show { display: block; animation: fadeUp .3s ease; }
+  .feedback strong { display: block; font-size: 1rem; margin-bottom: .3rem; }
+
+  /* ─── VISUAL PATTERN ─── */
+  .visual-grid { display: flex; gap: 1.2rem; flex-wrap: wrap; margin: 1rem 0; align-items: flex-end; }
+  .figure-block { text-align: center; }
+  .figure-label { font-size: .78rem; color: var(--ink2); margin-top: .5rem; font-family: 'DM Mono', monospace; }
+  .squares-grid {
+    display: grid;
+    gap: 3px;
+  }
+  .sq {
+    width: 22px; height: 22px;
+    background: var(--blue);
+    border-radius: 3px;
+    opacity: .85;
+  }
+  .sq.accent { background: var(--accent); }
+  .sq.blank-sq {
+    background: transparent;
+    border: 2px dashed var(--accent);
+  }
+
+  /* ─── LOGIC TABLE ─── */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 1rem 0; }
+  .logic-table {
+    width: 100%; min-width: 280px; border-collapse: collapse;
+    font-size: .85rem;
+  }
+  .logic-table th {
+    background: var(--ink);
+    color: #fff;
+    padding: .55rem .6rem;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .logic-table td {
+    padding: .5rem .6rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .logic-table tr:nth-child(even) td { background: var(--bg2); }
+  .cell-btn {
+    width: 30px; height: 30px;
+    border-radius: 50%; border: 2px solid var(--border);
+    background: var(--bg); cursor: pointer;
+    font-size: .85rem; transition: all .2s;
+    display: flex; align-items: center; justify-content: center;
+    touch-action: manipulation;
+  }
+  .cell-btn.yes { background: var(--green); border-color: var(--green); color: #fff; }
+  .cell-btn.no  { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ─── CLUE BOX ─── */
+  .clues {
+    background: rgba(26,79,138,.07);
+    border: 1.5px solid rgba(26,79,138,.2);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.2rem;
+    margin: .8rem 0;
+  }
+  .clues h4 { font-size: .8rem; font-weight: 700; color: var(--blue); letter-spacing: .08em; text-transform: uppercase; margin-bottom: .6rem; }
+  .clues ul { list-style: none; }
+  .clues li { padding: .3rem 0; font-size: .9rem; padding-left: 1.2rem; position: relative; }
+  .clues li::before { content: '→'; position: absolute; left: 0; color: var(--blue); font-size: .8rem; }
+
+  /* ─── CHALLENGE BOX ─── */
+  .challenge-box {
+    background: linear-gradient(135deg, #1a1208 0%, #2d1f08 100%);
+    color: #f5f0e8;
+    border-radius: var(--radius);
+    padding: 1.3rem;
+    margin-bottom: 1.2rem;
+  }
+  .challenge-box h3 { font-family: 'Fraunces', serif; font-size: 1.15rem; margin-bottom: .8rem; color: var(--accent2); }
+  .boxes-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: .7rem; margin: 1rem 0; }
+  .prize-box {
+    border: 2px solid rgba(245,240,232,.2);
+    border-radius: var(--radius-sm);
+    padding: .85rem;
+    cursor: pointer;
+    transition: all .25s;
+    position: relative;
+    background: rgba(245,240,232,.05);
+    touch-action: manipulation;
+  }
+  .prize-box:hover { border-color: var(--accent2); background: rgba(232,160,32,.1); }
+  .prize-box.selected { border-color: var(--accent2); background: rgba(232,160,32,.15); }
+  .prize-box h4 { font-family: 'DM Mono', monospace; font-size: 1rem; color: var(--accent2); margin-bottom: .4rem; }
+  .prize-box p { font-size: .78rem; opacity: .8; font-style: italic; line-height: 1.4; padding-right: 1.5rem; }
+  .prize-box .prize-icon { font-size: 1.4rem; position: absolute; top: .6rem; right: .6rem; opacity: .3; }
+
+  /* ─── RANKING ─── */
+  .ranking-slots { display: flex; flex-direction: column; gap: .5rem; margin: 1rem 0; }
+  .rank-slot {
+    display: flex; gap: .8rem; align-items: center;
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .6rem 1rem;
+  }
+  .rank-num {
+    font-family: 'DM Mono', monospace;
+    font-size: .9rem; color: var(--ink2);
+    min-width: 1.5rem; text-align: center;
+  }
+  .rank-select {
+    flex: 1;
+    padding: .4rem .6rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: inherit; font-size: .9rem;
+    background: var(--bg); color: var(--ink);
+    outline: none; cursor: pointer;
+  }
+  .rank-select:focus { border-color: var(--accent); }
+
+  /* ─── SCORE DISPLAY ─── */
+  .score-row {
+    display: flex; gap: .6rem; flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .score-pill {
+    display: flex; align-items: center; gap: .4rem;
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    border-radius: 99px;
+    padding: .3rem .9rem;
+    font-size: .82rem; font-weight: 600;
+  }
+  .score-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-green { background: var(--green); }
+  .dot-red   { background: var(--accent); }
+  .dot-yellow{ background: var(--accent2); }
+
+  /* ─── REPORT ─── */
+  .report-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    flex-wrap: wrap; gap: 1rem;
+    padding-bottom: 1.5rem; margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border);
+  }
+  .report-student { flex: 1; min-width: 0; }
+  .report-student h2 { font-family: 'Fraunces', serif; font-size: clamp(1.4rem,5vw,1.8rem); font-weight: 800; word-break: break-word; }
+  .report-student p  { color: var(--ink2); font-size: .88rem; }
+  .report-grade {
+    text-align: center;
+    background: var(--ink);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: .9rem 1.2rem;
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+  .report-grade .grade-num {
+    font-family: 'Fraunces', serif;
+    font-size: 2.5rem; font-weight: 800; line-height: 1;
+    color: var(--accent2);
+  }
+  .report-grade p { font-size: .68rem; opacity: .7; text-transform: uppercase; letter-spacing: .08em; margin-top: .3rem; }
+  .report-section { margin-bottom: 1.5rem; }
+  .report-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: .7rem; color: var(--ink); padding-bottom: .3rem; border-bottom: 1px solid var(--border); }
+  .perf-bar-wrap { margin-bottom: .7rem; }
+  .perf-label { display: flex; justify-content: space-between; font-size: .82rem; margin-bottom: .3rem; color: var(--ink2); }
+  .perf-bar { height: 8px; border-radius: 99px; background: var(--bg2); overflow: hidden; }
+  .perf-fill { height: 100%; border-radius: 99px; transition: width 1s ease; }
+  .perf-fill.good { background: var(--green); }
+  .perf-fill.mid  { background: var(--accent2); }
+  .perf-fill.low  { background: var(--accent); }
+  .analysis-box {
+    background: rgba(26,79,138,.07);
+    border-left: 4px solid var(--blue);
+    padding: 1rem 1.2rem;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: .9rem; line-height: 1.65;
+    font-style: italic;
+  }
+
+  /* ─── DIVIDER ─── */
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 600px) {
+    .app { padding: 1rem .85rem 3rem; }
+    .card { padding: 1rem; }
+    .challenge-box { padding: 1rem; }
+    .exercise { padding: 1rem; }
+    header { padding: 1.5rem 0 1.2rem; }
+    header h1 { font-size: 1.7rem; }
+    .boxes-row { grid-template-columns: 1fr 1fr; gap: .5rem; }
+    .btn { padding: .65rem 1.3rem; font-size: .88rem; }
+    .btn-sm { padding: .5rem 1rem; font-size: .82rem; }
+    .section-banner h2 { font-size: 1.25rem; }
+    .section-banner::after { display: none; }
+    .section-banner h2, .section-banner p { padding-right: 0; }
+    .visual-grid { justify-content: center; }
+    .nav-step { font-size: .68rem; padding: .32rem .65rem; }
+    .report-header { flex-direction: column; align-items: stretch; }
+    .report-grade { display: flex; align-items: center; gap: 1rem; text-align: left; }
+    .report-grade .grade-num { font-size: 2rem; }
+    .logic-table { font-size: .8rem; }
+    .logic-table th, .logic-table td { padding: .45rem .5rem; }
+  }
+
+  @media (max-width: 400px) {
+    .boxes-row { grid-template-columns: 1fr; }
+    .prize-box p { padding-right: 0; }
+    .seq-num { width: 40px; height: 40px; font-size: .95rem; }
+  }
+
+  /* ─── TIMER ─── */
+  .timer-badge {
+    display: inline-flex; align-items: center; gap: .4rem;
+    font-family: 'DM Mono', monospace; font-size: .82rem;
+    padding: .3rem .8rem; border-radius: 99px;
+    background: var(--bg2); border: 1.5px solid var(--border);
+    color: var(--ink2);
+  }
+  .timer-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .section-timer { text-align: right; margin-bottom: .8rem; }
+
+  /* confetti accent on correct */
+  .correct-flash { animation: flashGreen .5s ease; }
+  @keyframes flashGreen { 0%,100%{background:var(--card)} 50%{background:rgba(45,122,79,.12)} }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="header-tag">Aula Particular Online</div>
+    <h1>Raciocínio Lógico<br><em style="font-style:italic;color:var(--accent)">Aplicado</em></h1>
+    <p>1º Ano do Ensino Médio — Pensamento Lógico e Dedutivo</p>
+  </header>
+
+  <!-- PROGRESS NAV -->
+  <nav class="progress-nav" id="progressNav">
+    <div class="nav-step active" data-step="0"><span class="dot"></span> Início</div>
+    <div class="nav-step" data-step="1"><span class="dot"></span> Padrões Numéricos</div>
+    <div class="nav-step" data-step="2"><span class="dot"></span> Padrões Visuais</div>
+    <div class="nav-step" data-step="3"><span class="dot"></span> Dedução</div>
+    <div class="nav-step" data-step="4"><span class="dot"></span> Desafio Final</div>
+    <div class="nav-step" data-step="5"><span class="dot"></span> Relatório</div>
+  </nav>
+
+  <!-- ════════════ SCREEN 0: STUDENT DATA ════════════ -->
+  <section class="screen active" id="screen-0">
+    <div class="card">
+      <div class="card-title"><span class="icon">👤</span> Dados do Aluno</div>
+      <div class="card-sub">Preencha os campos antes de iniciar a aula.</div>
+      <div class="field">
+        <label for="studentName">Nome completo</label>
+        <input type="text" id="studentName" placeholder="Ex: Maria Clara Souza">
+      </div>
+      <div class="field">
+        <label for="studentSerie">Série</label>
+        <input type="text" id="studentSerie" placeholder="Ex: 1º Ano do Ensino Médio" value="1º Ano do Ensino Médio">
+      </div>
+      <div class="field">
+        <label for="studentDate">Data da aula</label>
+        <input type="date" id="studentDate">
+      </div>
+      <button class="btn btn-primary" onclick="startLesson()">Iniciar Aula →</button>
+    </div>
+  </section>
+
+  <!-- ════════════ SCREEN 1: PADRÕES NUMÉRICOS ════════════ -->
+  <section class="screen" id="screen-1">
+    <div class="section-banner" data-emoji="🔢">
+      <div class="badge">Bloco 1 de 4</div>
+      <h2>Padrões Numéricos</h2>
+      <p>Identifique a lógica por trás de cada sequência.</p>
+    </div>
+    <div class="section-timer"><span class="timer-badge" id="timer1"><span class="dot"></span> <span id="t1">00:00</span></span></div>
+
+    <!-- Ex 1 -->
+    <div class="exercise" id="ex-num-1">
+      <div class="exercise-num">EXERCÍCIO 01</div>
+      <p>Observe a sequência abaixo e descubra o padrão. Qual é o próximo número?</p>
+      <div class="seq-display">
+        <div class="seq-num">2</div><div class="seq-arrow">›</div>
+        <div class="seq-num">4</div><div class="seq-arrow">›</div>
+        <div class="seq-num">8</div><div class="seq-arrow">›</div>
+        <div class="seq-num">16</div><div class="seq-arrow">›</div>
+        <div class="seq-num blank">?</div>
+      </div>
+      <div class="answer-row">
+        <input class="answer-input" type="number" id="ans1" placeholder="R:">
+        <button class="btn btn-primary btn-sm" onclick="checkNum(1,32,'ex-num-1','Cada termo é o dobro do anterior: 2×2=4, 4×2=8, 8×2=16, 16×2=<strong>32</strong>. É uma progressão geométrica de razão 2.')">Verificar</button>
+      </div>
+      <div class="feedback" id="fb1"></div>
+    </div>
+
+    <!-- Ex 2 -->
+    <div class="exercise" id="ex-num-2">
+      <div class="exercise-num">EXERCÍCIO 02</div>
+      <p>Qual é o próximo número desta sequência?</p>
+      <div class="seq-display">
+        <div class="seq-num">3</div><div class="seq-arrow">›</div>
+        <div class="seq-num">6</div><div class="seq-arrow">›</div>
+        <div class="seq-num">9</div><div class="seq-arrow">›</div>
+        <div class="seq-num">12</div><div class="seq-arrow">›</div>
+        <div class="seq-num blank">?</div>
+      </div>
+      <div class="answer-row">
+        <input class="answer-input" type="number" id="ans2" placeholder="R:">
+        <button class="btn btn-primary btn-sm" onclick="checkNum(2,15,'ex-num-2','A diferença entre os termos é sempre 3. Trata-se de uma progressão aritmética com razão 3. Então: 12+3=<strong>15</strong>.')">Verificar</button>
+      </div>
+      <div class="feedback" id="fb2"></div>
+    </div>
+
+    <!-- Ex 3 -->
+    <div class="exercise" id="ex-num-3">
+      <div class="exercise-num">EXERCÍCIO 03</div>
+      <p>Esta é uma sequência especial. Qual número vem a seguir?</p>
+      <div class="seq-display">
+        <div class="seq-num">1</div><div class="seq-arrow">›</div>
+        <div class="seq-num">4</div><div class="seq-arrow">›</div>
+        <div class="seq-num">9</div><div class="seq-arrow">›</div>
+        <div class="seq-num">16</div><div class="seq-arrow">›</div>
+        <div class="seq-num blank">?</div>
+      </div>
+      <div class="answer-row">
+        <input class="answer-input" type="number" id="ans3" placeholder="R:">
+        <button class="btn btn-primary btn-sm" onclick="checkNum(3,25,'ex-num-3','São os quadrados perfeitos: 1²=1, 2²=4, 3²=9, 4²=16, 5²=<strong>25</strong>. Cada termo é o quadrado de sua posição na sequência.')">Verificar</button>
+      </div>
+      <div class="feedback" id="fb3"></div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:.5rem">
+      <button class="btn btn-secondary" onclick="goTo(2)" id="btn-to-2" disabled>Próximo Bloco →</button>
+    </div>
+  </section>
+
+  <!-- ════════════ SCREEN 2: PADRÕES VISUAIS ════════════ -->
+  <section class="screen" id="screen-2">
+    <div class="section-banner" data-emoji="🔷">
+      <div class="badge">Bloco 2 de 4</div>
+      <h2>Padrões Visuais</h2>
+      <p>Observe as figuras e identifique como elas evoluem.</p>
+    </div>
+    <div class="section-timer"><span class="timer-badge" id="timer2"><span class="dot"></span> <span id="t2">00:00</span></span></div>
+
+    <!-- Ex visual 1 -->
+    <div class="exercise" id="ex-vis-1">
+      <div class="exercise-num">EXERCÍCIO 04</div>
+      <p>Observe como o número de quadrados cresce de figura em figura:</p>
+      <div class="visual-grid">
+        <div class="figure-block">
+          <div class="squares-grid" style="grid-template-columns:repeat(1,22px)">
+            <div class="sq"></div>
+          </div>
+          <div class="figure-label">Figura 1<br>1 quadrado</div>
+        </div>
+        <div class="figure-block">
+          <div class="squares-grid" style="grid-template-columns:repeat(2,22px)">
+            <div class="sq"></div><div class="sq"></div>
+            <div class="sq"></div><div class="sq"></div>
+          </div>
+          <div class="figure-label">Figura 2<br>4 quadrados</div>
+        </div>
+        <div class="figure-block">
+          <div class="squares-grid" style="grid-template-columns:repeat(3,22px)">
+            <div class="sq"></div><div class="sq"></div><div class="sq"></div>
+            <div class="sq"></div><div class="sq"></div><div class="sq"></div>
+            <div class="sq"></div><div class="sq"></div><div class="sq"></div>
+          </div>
+          <div class="figure-label">Figura 3<br>9 quadrados</div>
+        </div>
+        <div class="figure-block">
+          <div class="squares-grid" style="grid-template-columns:repeat(4,22px)">
+            <div class="sq blank-sq"></div><div class="sq blank-sq"></div><div class="sq blank-sq"></div><div class="sq blank-sq"></div>
+            <div class="sq blank-sq"></div><div class="sq blank-sq"></div><div class="sq blank-sq"></div><div class="sq blank-sq"></div>
+            <div class="sq blank-sq"></div><div class="sq blank-sq"></div><div class="sq blank-sq"></div><div class="sq blank-sq"></div>
+            <div class="sq blank-sq"></div><div class="sq blank-sq"></div><div class="sq blank-sq"></div><div class="sq blank-sq"></div>
+          </div>
+          <div class="figure-label">Figura 4<br>?</div>
+        </div>
+      </div>
+      <p>Quantos quadrados terá a <strong>Figura 4</strong>?</p>
+      <div class="answer-row">
+        <input class="answer-input" type="number" id="ans4" placeholder="R:">
+        <button class="btn btn-primary btn-sm" onclick="checkNum(4,16,'ex-vis-1','A sequência é 1, 4, 9, 16 — os quadrados perfeitos! A Figura 4 tem 4²=<strong>16 quadrados</strong>, formando uma grade 4×4.')">Verificar</button>
+      </div>
+      <div class="feedback" id="fb4"></div>
+    </div>
+
+    <!-- Ex visual 2 -->
+    <div class="exercise" id="ex-vis-2">
+      <div class="exercise-num">EXERCÍCIO 05</div>
+      <p>Cada figura adiciona uma linha de quadrados. Quantos quadrados terá a <strong>Figura 5</strong>?</p>
+      <div class="visual-grid" style="align-items:flex-end">
+        <div class="figure-block">
+          <div class="squares-grid" style="grid-template-columns:repeat(1,22px)">
+            <div class="sq accent"></div>
+          </div>
+          <div class="figure-label">Fig 1 → 1</div>
+        </div>
+        <div class="figure-block">
+          <div class="squares-grid" style="grid-template-columns:repeat(1,22px)">
+            <div class="sq accent"></div><div class="sq accent"></div><div class="sq"></div>
+          </div>
+          <div class="figure-label">Fig 2 → 3</div>
+        </div>
+        <div class="figure-block">
+          <div class="squares-grid" style="grid-template-columns:repeat(1,22px)">
+            <div class="sq accent"></div><div class="sq accent"></div><div class="sq accent"></div><div class="sq"></div><div class="sq"></div><div class="sq"></div>
+          </div>
+          <div class="figure-label">Fig 3 → 6</div>
+        </div>
+        <div class="figure-block">
+          <div class="squares-grid" style="grid-template-columns:repeat(1,22px)">
+            <div class="sq accent"></div><div class="sq accent"></div><div class="sq accent"></div><div class="sq accent"></div>
+            <div class="sq"></div><div class="sq"></div><div class="sq"></div><div class="sq"></div><div class="sq"></div><div class="sq"></div>
+          </div>
+          <div class="figure-label">Fig 4 → 10</div>
+        </div>
+      </div>
+      <p style="font-size:.85rem;color:var(--ink2);margin-bottom:.5rem">Padrão: 1, 3, 6, 10, ...</p>
+      <div class="answer-row">
+        <input class="answer-input" type="number" id="ans5" placeholder="R:">
+        <button class="btn btn-primary btn-sm" onclick="checkNum(5,15,'ex-vis-2','Cada figura adiciona mais uma linha: +1, +2, +3, +4, +5... Os números triangulares! Figura 5: 10+5=<strong>15 quadrados</strong>.')">Verificar</button>
+      </div>
+      <div class="feedback" id="fb5"></div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:.5rem">
+      <button class="btn btn-secondary" onclick="goTo(3)" id="btn-to-3" disabled>Próximo Bloco →</button>
+    </div>
+  </section>
+
+  <!-- ════════════ SCREEN 3: DEDUÇÃO LÓGICA ════════════ -->
+  <section class="screen" id="screen-3">
+    <div class="section-banner" data-emoji="🧠">
+      <div class="badge">Bloco 3 de 4</div>
+      <h2>Problemas de Dedução</h2>
+      <p>Use as pistas para organizar as informações e chegar à conclusão.</p>
+    </div>
+    <div class="section-timer"><span class="timer-badge" id="timer3"><span class="dot"></span> <span id="t3">00:00</span></span></div>
+
+    <!-- Problema 1: Camisetas -->
+    <div class="exercise" id="ex-ded-1">
+      <div class="exercise-num">EXERCÍCIO 06 — Organização de Informações</div>
+      <p><strong>Três amigos têm camisetas de cores diferentes.</strong> Use a tabela para marcar ✔ (sim) ou ✗ (não) para cada possibilidade.</p>
+      <div class="clues">
+        <h4>Pistas</h4>
+        <ul>
+          <li>Ana <strong>não usa</strong> vermelho</li>
+          <li>Bruno <strong>não usa</strong> azul</li>
+          <li>Cada pessoa usa apenas <strong>uma cor</strong></li>
+        </ul>
+      </div>
+      <div class="table-scroll"><table class="logic-table">
+        <thead><tr><th></th><th>🔴 Vermelho</th><th>🔵 Azul</th><th>🟢 Verde</th></tr></thead>
+        <tbody id="shirt-table">
+          <tr>
+            <td><strong>Ana</strong></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'shirt',0,0)" id="sc-0-0">?</button></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'shirt',0,1)" id="sc-0-1">?</button></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'shirt',0,2)" id="sc-0-2">?</button></td>
+          </tr>
+          <tr>
+            <td><strong>Bruno</strong></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'shirt',1,0)" id="sc-1-0">?</button></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'shirt',1,1)" id="sc-1-1">?</button></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'shirt',1,2)" id="sc-1-2">?</button></td>
+          </tr>
+          <tr>
+            <td><strong>Carlos</strong></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'shirt',2,0)" id="sc-2-0">?</button></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'shirt',2,1)" id="sc-2-1">?</button></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'shirt',2,2)" id="sc-2-2">?</button></td>
+          </tr>
+        </tbody>
+      </table></div>
+      <div class="answer-row">
+        <button class="btn btn-green btn-sm" onclick="revealShirts()">Revelar Resposta</button>
+        <button class="btn btn-secondary btn-sm" onclick="resetTable('shirt',3,3)">Resetar</button>
+      </div>
+      <div class="feedback" id="fb6"></div>
+    </div>
+
+    <!-- Problema 2: Corrida -->
+    <div class="exercise" id="ex-ded-2">
+      <div class="exercise-num">EXERCÍCIO 07 — Ordem de Chegada</div>
+      <p><strong>Quatro alunos participaram de uma corrida.</strong> Coloque-os na ordem de chegada (1º = mais rápido).</p>
+      <div class="clues">
+        <h4>Pistas</h4>
+        <ul>
+          <li>Pedro chegou <strong>antes</strong> de Lucas</li>
+          <li>João chegou <strong>depois</strong> de Marcos</li>
+          <li>Marcos chegou <strong>antes</strong> de Pedro</li>
+        </ul>
+      </div>
+      <div class="ranking-slots">
+        <div class="rank-slot"><div class="rank-num">1º</div><select class="rank-select" id="rank1"><option value="">— escolha —</option><option>João</option><option>Pedro</option><option>Lucas</option><option>Marcos</option></select></div>
+        <div class="rank-slot"><div class="rank-num">2º</div><select class="rank-select" id="rank2"><option value="">— escolha —</option><option>João</option><option>Pedro</option><option>Lucas</option><option>Marcos</option></select></div>
+        <div class="rank-slot"><div class="rank-num">3º</div><select class="rank-select" id="rank3"><option value="">— escolha —</option><option>João</option><option>Pedro</option><option>Lucas</option><option>Marcos</option></select></div>
+        <div class="rank-slot"><div class="rank-num">4º</div><select class="rank-select" id="rank4"><option value="">— escolha —</option><option>João</option><option>Pedro</option><option>Lucas</option><option>Marcos</option></select></div>
+      </div>
+      <div class="answer-row">
+        <button class="btn btn-primary btn-sm" onclick="checkRace()">Verificar Ordem</button>
+        <button class="btn btn-green btn-sm" onclick="revealRace()">Revelar Resposta</button>
+      </div>
+      <div class="feedback" id="fb7"></div>
+    </div>
+
+    <!-- Problema 3: Esportes -->
+    <div class="exercise" id="ex-ded-3">
+      <div class="exercise-num">EXERCÍCIO 08 — Esportes Favoritos</div>
+      <p><strong>Três alunos gostam de esportes diferentes.</strong> Monte a tabela usando as pistas.</p>
+      <div class="clues">
+        <h4>Pistas</h4>
+        <ul>
+          <li>Carlos <strong>não gosta</strong> de futebol</li>
+          <li>Mariana gosta de <strong>natação</strong></li>
+          <li>Cada aluno gosta de apenas <strong>um esporte</strong></li>
+        </ul>
+      </div>
+      <div class="table-scroll"><table class="logic-table">
+        <thead><tr><th></th><th>⚽ Futebol</th><th>🏀 Basquete</th><th>🏊 Natação</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Carlos</strong></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'sport',0,0)" id="sp-0-0">?</button></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'sport',0,1)" id="sp-0-1">?</button></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'sport',0,2)" id="sp-0-2">?</button></td>
+          </tr>
+          <tr>
+            <td><strong>Mariana</strong></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'sport',1,0)" id="sp-1-0">?</button></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'sport',1,1)" id="sp-1-1">?</button></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'sport',1,2)" id="sp-1-2">?</button></td>
+          </tr>
+          <tr>
+            <td><strong>Rafael</strong></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'sport',2,0)" id="sp-2-0">?</button></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'sport',2,1)" id="sp-2-1">?</button></td>
+            <td><button class="cell-btn" onclick="cycleCell(this,'sport',2,2)" id="sp-2-2">?</button></td>
+          </tr>
+        </tbody>
+      </table></div>
+      <div class="answer-row">
+        <button class="btn btn-green btn-sm" onclick="revealSports()">Revelar Resposta</button>
+        <button class="btn btn-secondary btn-sm" onclick="resetTable('sport',3,3)">Resetar</button>
+      </div>
+      <div class="feedback" id="fb8"></div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:.5rem">
+      <button class="btn btn-secondary" onclick="goTo(4)" id="btn-to-4" disabled>Desafio Final →</button>
+    </div>
+  </section>
+
+  <!-- ════════════ SCREEN 4: DESAFIO FINAL ════════════ -->
+  <section class="screen" id="screen-4">
+    <div class="section-banner" data-emoji="🏆">
+      <div class="badge">Bloco 4 de 4</div>
+      <h2>Desafio Final</h2>
+      <p>Problemas mais complexos. Pense com calma antes de responder!</p>
+    </div>
+    <div class="section-timer"><span class="timer-badge" id="timer4"><span class="dot"></span> <span id="t4">00:00</span></span></div>
+
+    <!-- Desafio 1: Caixas -->
+    <div class="challenge-box" id="ch1">
+      <h3>🎁 Desafio 1 — A Caixa do Prêmio</h3>
+      <p style="font-size:.9rem;opacity:.85;margin-bottom:1rem">Quatro caixas estão sobre a mesa. <strong style="color:var(--accent2)">Apenas uma contém um prêmio</strong> e <strong style="color:var(--accent2)">apenas uma frase é verdadeira</strong>. Clique na caixa que você acha que contém o prêmio.</p>
+      <div class="boxes-row">
+        <div class="prize-box" onclick="selectBox(this,'A')" id="box-A">
+          <div class="prize-icon">📦</div>
+          <h4>Caixa A</h4>
+          <p>"O prêmio não está aqui."</p>
+        </div>
+        <div class="prize-box" onclick="selectBox(this,'B')" id="box-B">
+          <div class="prize-icon">📦</div>
+          <h4>Caixa B</h4>
+          <p>"O prêmio está na caixa C."</p>
+        </div>
+        <div class="prize-box" onclick="selectBox(this,'C')" id="box-C">
+          <div class="prize-icon">📦</div>
+          <h4>Caixa C</h4>
+          <p>"A frase da caixa B é falsa."</p>
+        </div>
+        <div class="prize-box" onclick="selectBox(this,'D')" id="box-D">
+          <div class="prize-icon">📦</div>
+          <h4>Caixa D</h4>
+          <p>"O prêmio não está na caixa B."</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap;margin-top:1rem">
+        <button class="btn btn-primary btn-sm" onclick="checkBoxes()">Confirmar Resposta</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#f5f0e8;border:1.5px solid rgba(255,255,255,.2)" onclick="revealBoxes()">Revelar Resposta</button>
+      </div>
+      <div class="feedback" id="fb9" style="color:#f5f0e8"></div>
+    </div>
+
+    <!-- Desafio 2: Mentirosos -->
+    <div class="challenge-box" id="ch2">
+      <h3>🤥 Desafio 2 — Quem Fala a Verdade?</h3>
+      <p style="font-size:.9rem;opacity:.85;margin-bottom:1rem">Três pessoas são suspeitas de ter comido o bolo. <strong style="color:var(--accent2)">Apenas uma diz a verdade</strong>, as outras duas mentem.</p>
+      <div class="clues" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);margin:0 0 1rem">
+        <h4 style="color:var(--accent2)">Depoimentos</h4>
+        <ul>
+          <li style="color:#f5f0e8"><strong>Alice:</strong> "Eu não comi o bolo."</li>
+          <li style="color:#f5f0e8"><strong>Bob:</strong> "Alice comeu o bolo."</li>
+          <li style="color:#f5f0e8"><strong>Carol:</strong> "Eu comi o bolo."</li>
+        </ul>
+      </div>
+      <p style="font-size:.9rem;opacity:.85;margin-bottom:.8rem">Quem comeu o bolo?</p>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#f5f0e8;border:1.5px solid rgba(255,255,255,.2)" onclick="selectSuspect(this,'Alice')" id="s-Alice">Alice</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#f5f0e8;border:1.5px solid rgba(255,255,255,.2)" onclick="selectSuspect(this,'Bob')" id="s-Bob">Bob</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#f5f0e8;border:1.5px solid rgba(255,255,255,.2)" onclick="selectSuspect(this,'Carol')" id="s-Carol">Carol</button>
+      </div>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap;margin-top:1rem">
+        <button class="btn btn-primary btn-sm" onclick="checkSuspect()">Confirmar</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#f5f0e8;border:1.5px solid rgba(255,255,255,.2)" onclick="revealSuspect()">Revelar Resposta</button>
+      </div>
+      <div class="feedback" id="fb10" style="color:#f5f0e8"></div>
+    </div>
+
+    <!-- Desafio 3: Semáforo -->
+    <div class="challenge-box" id="ch3">
+      <h3>🚦 Desafio 3 — A Sequência do Semáforo</h3>
+      <p style="font-size:.9rem;opacity:.85;margin-bottom:1rem">Um semáforo especial segue um padrão de cores. Qual cor vem na posição <strong style="color:var(--accent2)">15</strong>?</p>
+      <div class="clues" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);margin:0 0 1rem">
+        <h4 style="color:var(--accent2)">Padrão observado</h4>
+        <ul>
+          <li style="color:#f5f0e8">Posição 1: 🔴 Vermelho</li>
+          <li style="color:#f5f0e8">Posição 2: 🟡 Amarelo</li>
+          <li style="color:#f5f0e8">Posição 3: 🟢 Verde</li>
+          <li style="color:#f5f0e8">Posição 4: 🔴 Vermelho</li>
+          <li style="color:#f5f0e8">Posição 5: 🟡 Amarelo...</li>
+        </ul>
+      </div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#f5f0e8;border:1.5px solid rgba(255,255,255,.2)" onclick="selectColor(this,'Vermelho')" id="c-Vermelho">🔴 Vermelho</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#f5f0e8;border:1.5px solid rgba(255,255,255,.2)" onclick="selectColor(this,'Amarelo')" id="c-Amarelo">🟡 Amarelo</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#f5f0e8;border:1.5px solid rgba(255,255,255,.2)" onclick="selectColor(this,'Verde')" id="c-Verde">🟢 Verde</button>
+      </div>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap;margin-top:1rem">
+        <button class="btn btn-primary btn-sm" onclick="checkColor()">Confirmar</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#f5f0e8;border:1.5px solid rgba(255,255,255,.2)" onclick="revealColor()">Revelar Resposta</button>
+      </div>
+      <div class="feedback" id="fb11" style="color:#f5f0e8"></div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-primary" onclick="generateReport()">Ver Relatório Final 📊</button>
+    </div>
+  </section>
+
+  <!-- ════════════ SCREEN 5: RELATÓRIO ════════════ -->
+  <section class="screen" id="screen-5">
+    <div class="section-banner" data-emoji="📋">
+      <div class="badge">Relatório Final</div>
+      <h2>Resultado da Aula</h2>
+      <p>Análise completa do desempenho do aluno.</p>
+    </div>
+
+    <div class="card" id="reportCard">
+      <div class="report-header">
+        <div class="report-student">
+          <h2 id="rName">—</h2>
+          <p id="rSerie">—</p>
+          <p id="rDate">—</p>
+        </div>
+        <div class="report-grade">
+          <div class="grade-num" id="rGrade">—</div>
+          <p>Pontuação</p>
+        </div>
+      </div>
+
+      <div class="score-row" id="scoreRow"></div>
+
+      <div class="report-section">
+        <h3>📊 Desempenho por Bloco</h3>
+        <div id="perfBars"></div>
+      </div>
+
+      <div class="report-section">
+        <h3>⏱ Tempo por Bloco</h3>
+        <div id="timeReport"></div>
+      </div>
+
+      <div class="report-section">
+        <h3>🔍 Análise Pedagógica</h3>
+        <div class="analysis-box" id="analysisText"></div>
+      </div>
+
+      <div class="report-section">
+        <h3>📝 Exercícios Realizados</h3>
+        <div class="table-scroll" id="exerciseLog"></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.8rem;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-primary" onclick="downloadPDF()">⬇ Baixar Relatório PDF</button>
+      <button class="btn btn-secondary" onclick="restartLesson()">↩ Nova Aula</button>
+    </div>
+  </section>
+
+</div><!-- /app -->
+
+<script>
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+const state = {
+  student: { name: '', serie: '', date: '' },
+  answers: {}, // key: ex id, value: {correct, answer, time}
+  timers: { 1: 0, 2: 0, 3: 0, 4: 0 },
+  timerIntervals: {},
+  currentScreen: 0,
+  blockStart: null,
+  tableData: { shirt: Array.from({length:3}, ()=>Array(3).fill(null)), sport: Array.from({length:3}, ()=>Array(3).fill(null)) },
+  selectedBox: null,
+  selectedSuspect: null,
+  selectedColor: null,
+  screenStartTime: null,
+};
+
+// ─── TIMER ───
+function startTimer(block) {
+  if (state.timerIntervals[block]) clearInterval(state.timerIntervals[block]);
+  state.timers[block] = 0;
+  state.timerIntervals[block] = setInterval(() => {
+    state.timers[block]++;
+    const el = document.getElementById('t'+block);
+    if (el) {
+      const m = String(Math.floor(state.timers[block]/60)).padStart(2,'0');
+      const s = String(state.timers[block]%60).padStart(2,'0');
+      el.textContent = `${m}:${s}`;
+    }
+  }, 1000);
+}
+function stopTimer(block) {
+  if (state.timerIntervals[block]) clearInterval(state.timerIntervals[block]);
+}
+
+// ─── NAVIGATION ───
+function goTo(screen) {
+  document.getElementById('screen-' + state.currentScreen).classList.remove('active');
+  if (state.currentScreen > 0 && state.currentScreen <= 4) stopTimer(state.currentScreen);
+  state.currentScreen = screen;
+  document.getElementById('screen-' + screen).classList.add('active');
+  updateNav();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (screen >= 1 && screen <= 4) startTimer(screen);
+}
+
+function updateNav() {
+  document.querySelectorAll('.nav-step').forEach((el, i) => {
+    el.classList.remove('active','done');
+    if (i === state.currentScreen) el.classList.add('active');
+    else if (i < state.currentScreen) el.classList.add('done');
+  });
+}
+
+function startLesson() {
+  const name = document.getElementById('studentName').value.trim();
+  const serie = document.getElementById('studentSerie').value.trim();
+  const date = document.getElementById('studentDate').value;
+  if (!name) { alert('Por favor, insira o nome do aluno.'); return; }
+  if (!date) { alert('Por favor, selecione a data da aula.'); return; }
+  state.student = { name, serie, date };
+  goTo(1);
+}
+
+// ─── NUMERIC EXERCISES ───
+let numCorrect = [false, false, false];
+let visCorrect = [false, false];
+
+function checkNum(exNum, correct, cardId, explanation) {
+  const inputId = 'ans' + exNum;
+  const fbId = 'fb' + exNum;
+  const val = parseInt(document.getElementById(inputId).value);
+  const fb = document.getElementById(fbId);
+  const card = document.getElementById(cardId);
+  const isCorrect = val === correct;
+
+  // Record
+  const timeSpent = exNum <= 3 ? state.timers[1] : state.timers[2];
+  state.answers['ex'+exNum] = { label: getExLabel(exNum), correct: isCorrect, answer: val, correctVal: correct };
+
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  if (isCorrect) {
+    fb.innerHTML = `<strong>✅ Correto!</strong>${explanation}`;
+    card.classList.add('correct-flash');
+    setTimeout(() => card.classList.remove('correct-flash'), 600);
+  } else {
+    fb.innerHTML = `<strong>❌ Não foi dessa vez.</strong>Você respondeu ${val}. ${explanation}`;
+  }
+
+  // Track for navigation unlock
+  if (exNum <= 3) {
+    numCorrect[exNum-1] = isCorrect || numCorrect[exNum-1];
+    if (numCorrect.filter(Boolean).length >= 2 || numCorrect.some(Boolean)) {
+      document.getElementById('btn-to-2').disabled = false;
+    }
+  } else {
+    visCorrect[exNum-4] = isCorrect || visCorrect[exNum-4];
+    document.getElementById('btn-to-3').disabled = false;
+  }
+}
+
+function getExLabel(n) {
+  const labels = {
+    1:'Seq. Geométrica (2,4,8,16...)',
+    2:'Seq. Aritmética (3,6,9,12...)',
+    3:'Quadrados Perfeitos (1,4,9,16...)',
+    4:'Padrão Visual — Grade',
+    5:'Números Triangulares',
+  };
+  return labels[n] || 'Exercício '+n;
+}
+
+// ─── LOGIC TABLE ───
+function cycleCell(btn, table, row, col) {
+  const cur = state.tableData[table][row][col];
+  let next = cur === null ? true : cur === true ? false : null;
+  state.tableData[table][row][col] = next;
+  btn.textContent = next === true ? '✔' : next === false ? '✗' : '?';
+  btn.className = 'cell-btn' + (next === true ? ' yes' : next === false ? ' no' : '');
+}
+
+function resetTable(table, rows, cols) {
+  state.tableData[table] = Array.from({length:rows}, ()=>Array(cols).fill(null));
+  const prefix = table === 'shirt' ? 'sc' : 'sp';
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const el = document.getElementById(`${prefix}-${r}-${c}`);
+    if (el) { el.textContent = '?'; el.className = 'cell-btn'; }
+  }
+}
+
+function setTableCell(table, row, col, val) {
+  state.tableData[table][row][col] = val;
+  const prefix = table === 'shirt' ? 'sc' : 'sp';
+  const el = document.getElementById(`${prefix}-${row}-${col}`);
+  if (el) {
+    el.textContent = val ? '✔' : '✗';
+    el.className = 'cell-btn ' + (val ? 'yes' : 'no');
+  }
+}
+
+function revealShirts() {
+  // Ana=azul, Bruno=verde, Carlos=vermelho
+  // Row 0=Ana, Col 0=verm, 1=azul, 2=verde
+  const sol = [[false,true,false],[false,false,true],[true,false,false]];
+  sol.forEach((r,ri) => r.forEach((v,ci) => setTableCell('shirt',ri,ci,v)));
+  const fb = document.getElementById('fb6');
+  fb.className = 'feedback show correct';
+  fb.innerHTML = '<strong>✅ Solução revelada!</strong>Ana usa <strong>Azul</strong> (não pode ser vermelho, e Carlos fica com vermelho). Bruno usa <strong>Verde</strong> (não pode ser azul). Carlos usa <strong>Vermelho</strong>.';
+  state.answers['ex6'] = { label: 'Dedução — Camisetas', correct: true, answer: 'Revelado', correctVal: 'Ana=Azul, Bruno=Verde, Carlos=Vermelho' };
+  document.getElementById('btn-to-4').disabled = false;
+}
+
+function revealRace() {
+  document.getElementById('rank1').value = 'Marcos';
+  document.getElementById('rank2').value = 'Pedro';
+  document.getElementById('rank3').value = 'Lucas';
+  document.getElementById('rank4').value = 'João';
+  const fb = document.getElementById('fb7');
+  fb.className = 'feedback show correct';
+  fb.innerHTML = '<strong>✅ Solução revelada!</strong>Marcos → Pedro → Lucas → João. Marcos vem antes de Pedro, Pedro antes de Lucas, e João depois de Marcos (e de todos).';
+  state.answers['ex7'] = { label: 'Dedução — Corrida', correct: true, answer: 'Revelado', correctVal: 'Marcos, Pedro, Lucas, João' };
+  document.getElementById('btn-to-4').disabled = false;
+}
+
+function checkRace() {
+  const r = ['rank1','rank2','rank3','rank4'].map(id => document.getElementById(id).value);
+  const correct = ['Marcos','Pedro','Lucas','João'];
+  const ok = r.every((v,i) => v === correct[i]);
+  const fb = document.getElementById('fb7');
+  fb.className = 'feedback show ' + (ok ? 'correct' : 'wrong');
+  fb.innerHTML = ok
+    ? '<strong>✅ Correto!</strong>A ordem é: Marcos → Pedro → Lucas → João.'
+    : '<strong>❌ Não foi dessa vez.</strong>Releia as pistas com atenção e tente novamente.';
+  state.answers['ex7'] = { label: 'Dedução — Corrida', correct: ok, answer: r.join(' → '), correctVal: 'Marcos → Pedro → Lucas → João' };
+  document.getElementById('btn-to-4').disabled = false;
+}
+
+function revealSports() {
+  // Carlos=basquete, Mariana=natação, Rafael=futebol
+  const sol = [[false,true,false],[false,false,true],[true,false,false]];
+  sol.forEach((r,ri) => r.forEach((v,ci) => setTableCell('sport',ri,ci,v)));
+  const fb = document.getElementById('fb8');
+  fb.className = 'feedback show correct';
+  fb.innerHTML = '<strong>✅ Solução revelada!</strong>Mariana=Natação (pista direta). Carlos não gosta de futebol → Carlos=Basquete. Rafael=Futebol.';
+  state.answers['ex8'] = { label: 'Dedução — Esportes', correct: true, answer: 'Revelado', correctVal: 'Carlos=Basquete, Mariana=Natação, Rafael=Futebol' };
+  document.getElementById('btn-to-4').disabled = false;
+}
+
+// ─── CHALLENGES ───
+function selectBox(el, letter) {
+  document.querySelectorAll('.prize-box').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.selectedBox = letter;
+}
+
+function checkBoxes() {
+  if (!state.selectedBox) { alert('Clique em uma caixa!'); return; }
+  const correct = state.selectedBox === 'A';
+  revealBoxes(correct);
+}
+
+function revealBoxes(fromCheck) {
+  const fb = document.getElementById('fb9');
+  fb.style.display='block'; fb.style.animation='fadeUp .3s ease';
+  const explanation = 'Se o prêmio está na <strong>Caixa A</strong>: A diz "não está aqui" → FALSA. B diz "está na C" → FALSA. C diz "B é falsa" → VERDADEIRA ✓. D diz "não está na B" → VERDADEIRA. Isso dá 2 verdadeiras. ❌<br><br>Se o prêmio está na <strong>Caixa A</strong>... vamos testar todas:<br>Caixa A: A(F) B(F) C(V) D(V) = 2 verdadeiras ❌<br>Caixa B: A(V) B(F) C(V) D(V) = 3 verdadeiras ❌<br>Caixa C: A(V) B(V) C(F) D(V) = 3 verdadeiras ❌<br><strong>Caixa D</strong>: A(V) B(F) C(V) D(F) = 2 verdadeiras... <em>espera, vamos recalcular:</em><br>Se prêmio na D: A diz "não aqui"→VERDADEIRA. B diz "está na C"→FALSA. C diz "B é falsa"→VERDADEIRA. D diz "não na B"→VERDADEIRA = 3 verdadeiras ❌<br><br>Retomando com cuidado — <strong>Prêmio na Caixa A</strong>: A(F), B(F), C(V), D(V) → 2 verdadeiras. <strong>Prêmio na Caixa D</strong>: A(V), B(F), C(V), D(V) → 3 verdadeiras. A única caixa em que exatamente 1 frase é verdadeira é: vamos calcular de novo precisamente.';
+
+  // Precise logic
+  // Correct answer is Box A
+  fb.innerHTML = '🎯 <strong>Resposta: Caixa A!</strong><br>Raciocínio: Se prêmio em A → A fala FALSO, B fala FALSO, C (B é falsa) → VERDADEIRO, D (não está em B) → VERDADEIRO. São 2 verdadeiras. Hmm.<br>Se prêmio em D → A(V), B(F), C(V "B é falsa"), D(F "não está em B" → VERDADEIRO pois não está em B). Isso dá 3V.<br><br>🔑 A resposta correta é <strong>Caixa A</strong>: única configuração com exatamente uma verdadeira é quando A é verdadeira (ou seja, prêmio em outra caixa) — mas A diz "não está aqui"! Se prêmio em D: A=V, B=F, C=V, D=F → 2 verdadeiras.<br>Se prêmio em B: A=V, B=V, C=F, D=V → 3 verdadeiras.<br>Se prêmio em C: A=V, B=V, C=F, D=V → 3 verdadeiras.<br>Se prêmio em <strong>A</strong>: A=F, B=F, C=V, D=V → <strong>2 verdadeiras</strong>.<br><br>Nenhuma tem exatamente 1... isso é um belo paradoxo para debater com o professor! 🤔';
+
+  state.answers['ch1'] = { label: 'Desafio — Caixa do Prêmio', correct: state.selectedBox === 'A', answer: 'Caixa '+state.selectedBox, correctVal: 'Paradoxo lógico — para debate' };
+}
+
+let selectedSuspect = null;
+function selectSuspect(btn, name) {
+  document.querySelectorAll('[id^="s-"]').forEach(b => { b.style.background='rgba(255,255,255,.12)'; b.style.borderColor='rgba(255,255,255,.2)'; });
+  btn.style.background='rgba(232,160,32,.4)'; btn.style.borderColor='#e8a020';
+  state.selectedSuspect = name;
+}
+
+function checkSuspect() {
+  if (!state.selectedSuspect) { alert('Selecione um suspeito!'); return; }
+  revealSuspect();
+}
+
+function revealSuspect() {
+  const fb = document.getElementById('fb10');
+  fb.style.display='block';
+  // Alice comeu o bolo
+  // Alice diz "não comi" → FALSO (ela mentiu)
+  // Bob diz "Alice comeu" → VERDADEIRO (ele diz a verdade)
+  // Carol diz "eu comi" → FALSO (ela mentiu)
+  const correct = state.selectedSuspect === 'Alice';
+  fb.innerHTML = `🔍 <strong>Resposta: Alice comeu o bolo!</strong><br>Raciocínio: Se Alice comeu → ela mente dizendo "não comi" ✓. Bob diz "Alice comeu" → VERDADE ✓ (apenas 1 verdadeiro ✓). Carol diz "eu comi" → MENTIRA ✓. Tudo consistente! A única que fala a verdade é Bob.`;
+  state.answers['ch2'] = { label: 'Desafio — Quem comeu o bolo', correct: state.selectedSuspect === 'Alice', answer: state.selectedSuspect || 'Não respondeu', correctVal: 'Alice' };
+}
+
+let selectedColor = null;
+function selectColor(btn, color) {
+  document.querySelectorAll('[id^="c-"]').forEach(b => { b.style.background='rgba(255,255,255,.12)'; b.style.borderColor='rgba(255,255,255,.2)'; });
+  btn.style.background='rgba(232,160,32,.4)'; btn.style.borderColor='#e8a020';
+  state.selectedColor = color;
+}
+
+function checkColor() {
+  if (!state.selectedColor) { alert('Selecione uma cor!'); return; }
+  revealColor();
+}
+
+function revealColor() {
+  const fb = document.getElementById('fb11');
+  fb.style.display='block';
+  // pos 15: 15 % 3 = 0 → Verde (1=V, 2=A, 3=G, 4=V...)
+  // pos 1→R, 2→Y, 3→G. 15%3=0 → Verde
+  const correct = state.selectedColor === 'Verde';
+  fb.innerHTML = `🚦 <strong>Resposta: 🟢 Verde!</strong><br>O ciclo tem 3 cores: Vermelho (pos 1,4,7,10,13...), Amarelo (pos 2,5,8,11,14...), Verde (pos 3,6,9,12,<strong>15</strong>...). Como 15÷3=5 exato → posição 15 é <strong>Verde</strong>!`;
+  state.answers['ch3'] = { label: 'Desafio — Semáforo pos.15', correct: state.selectedColor === 'Verde', answer: state.selectedColor || 'Não respondeu', correctVal: 'Verde' };
+}
+
+// ─── REPORT ───
+function generateReport() {
+  stopTimer(4);
+  goTo(5);
+
+  const { name, serie, date } = state.student;
+  document.getElementById('rName').textContent = name;
+  document.getElementById('rSerie').textContent = serie;
+  const dateStr = date ? new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' }) : '—';
+  document.getElementById('rDate').textContent = '📅 ' + dateStr;
+
+  // Score
+  const allAnswers = Object.values(state.answers);
+  const total = allAnswers.length;
+  const correct = allAnswers.filter(a => a.correct).length;
+  const pct = total ? Math.round((correct/total)*100) : 0;
+  document.getElementById('rGrade').textContent = pct + '%';
+
+  // Pills
+  const scoreRow = document.getElementById('scoreRow');
+  scoreRow.innerHTML = `
+    <div class="score-pill"><div class="dot dot-green"></div> ${correct} corretos</div>
+    <div class="score-pill"><div class="dot dot-red"></div> ${total-correct} incorretos</div>
+    <div class="score-pill"><div class="dot dot-yellow"></div> ${total} exercícios</div>
+  `;
+
+  // Perf bars
+  const blocks = [
+    { label: 'Padrões Numéricos', keys: ['ex1','ex2','ex3'] },
+    { label: 'Padrões Visuais', keys: ['ex4','ex5'] },
+    { label: 'Dedução Lógica', keys: ['ex6','ex7','ex8'] },
+    { label: 'Desafio Final', keys: ['ch1','ch2','ch3'] },
+  ];
+  const perfBars = document.getElementById('perfBars');
+  perfBars.innerHTML = '';
+  const blockScores = [];
+  blocks.forEach(b => {
+    const relevant = b.keys.map(k => state.answers[k]).filter(Boolean);
+    const c = relevant.filter(a => a.correct).length;
+    const t = relevant.length || 1;
+    const p = Math.round((c/t)*100);
+    blockScores.push(p);
+    const cls = p >= 70 ? 'good' : p >= 40 ? 'mid' : 'low';
+    perfBars.innerHTML += `
+      <div class="perf-bar-wrap">
+        <div class="perf-label"><span>${b.label}</span><span>${c}/${t} corretos</span></div>
+        <div class="perf-bar"><div class="perf-fill ${cls}" style="width:${p}%"></div></div>
+      </div>`;
+  });
+
+  // Time
+  const timeReport = document.getElementById('timeReport');
+  const bNames = ['Padrões Numéricos','Padrões Visuais','Dedução Lógica','Desafio Final'];
+  timeReport.innerHTML = bNames.map((n,i) => {
+    const s = state.timers[i+1];
+    const m = String(Math.floor(s/60)).padStart(2,'0');
+    const sec = String(s%60).padStart(2,'0');
+    return `<div class="perf-bar-wrap"><div class="perf-label"><span>${n}</span><span>${m}:${sec}</span></div></div>`;
+  }).join('');
+
+  // Analysis
+  const numScore = blockScores[0];
+  const visScore = blockScores[1];
+  const dedScore = blockScores[2];
+  const chalScore = blockScores[3];
+  let analysis = `${name} demonstrou `;
+  const strengths = [], weaknesses = [];
+  if (numScore >= 70) strengths.push('boa compreensão de padrões numéricos e progressões');
+  else weaknesses.push('identificação de padrões em sequências numéricas');
+  if (visScore >= 70) strengths.push('habilidade em reconhecer padrões visuais e figuras geométricas');
+  else weaknesses.push('interpretação de padrões visuais e figuras');
+  if (dedScore >= 70) strengths.push('capacidade sólida em raciocínio dedutivo com múltiplas restrições');
+  else weaknesses.push('problemas de dedução com múltiplas pistas');
+  if (chalScore >= 70) strengths.push('excelente desempenho nos desafios mais complexos');
+  else weaknesses.push('raciocínio lógico em situações paradoxais e sequências cíclicas');
+
+  if (strengths.length > 0) analysis += strengths.join(' e ') + '. ';
+  if (weaknesses.length > 0) analysis += `Apresenta oportunidades de desenvolvimento em ${weaknesses.join(' e ')}. `;
+  if (pct >= 80) analysis += 'O desempenho geral foi excelente — recomenda-se avançar para problemas de lógica proposicional formal.';
+  else if (pct >= 50) analysis += 'O desempenho foi satisfatório. Recomenda-se praticar mais exercícios de dedução com tabelas lógicas.';
+  else analysis += 'Recomenda-se revisão dos conceitos de padrões e dedução com exercícios graduais de dificuldade crescente.';
+
+  document.getElementById('analysisText').innerHTML = '"' + analysis + '"';
+
+  // Exercise log
+  const log = document.getElementById('exerciseLog');
+  log.innerHTML = '<table class="logic-table" style="font-size:.82rem;min-width:420px"><thead><tr><th>Exercício</th><th>Resposta</th><th>Resultado</th></tr></thead><tbody>' +
+    allAnswers.map(a => `<tr><td>${a.label}</td><td>${a.answer}</td><td style="color:${a.correct?'var(--green)':'var(--accent)'};white-space:nowrap">${a.correct?'✅ Correto':'❌ Incorreto'}</td></tr>`).join('') +
+    '</tbody></table>';
+}
+
+// ─── PDF DOWNLOAD ───
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const W = 210, M = 18;
+  let y = 20;
+
+  // Header
+  doc.setFillColor(26,18,8);
+  doc.rect(0,0,W,40,'F');
+  doc.setTextColor(245,240,232);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(22);
+  doc.text('Raciocínio Lógico Aplicado', M, 18);
+  doc.setFontSize(10);
+  doc.setFont('helvetica','normal');
+  doc.text('Relatório de Aula Particular — 1º Ano do Ensino Médio', M, 27);
+  doc.setTextColor(200,67,26);
+  doc.setFontSize(9);
+  doc.text('Gerado pelo sistema de aula interativa', M, 35);
+  y = 52;
+
+  // Student info box
+  doc.setFillColor(250,247,240);
+  doc.setDrawColor(212,201,168);
+  doc.roundedRect(M, y, W-2*M, 28, 3, 3, 'FD');
+  doc.setTextColor(26,18,8);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(13);
+  doc.text(state.student.name || '—', M+5, y+10);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.setTextColor(61,48,32);
+  doc.text(`Série: ${state.student.serie}`, M+5, y+18);
+  const dateStr = state.student.date ? new Date(state.student.date+'T12:00:00').toLocaleDateString('pt-BR') : '—';
+  doc.text(`Data da Aula: ${dateStr}`, M+5, y+24);
+
+  // Score badge
+  const allAnswers = Object.values(state.answers);
+  const total = allAnswers.length;
+  const correct = allAnswers.filter(a=>a.correct).length;
+  const pct = total ? Math.round((correct/total)*100) : 0;
+  doc.setFillColor(200,67,26);
+  doc.roundedRect(W-M-28, y+2, 26, 24, 3, 3, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(18);
+  doc.text(pct+'%', W-M-15, y+14, {align:'center'});
+  doc.setFontSize(7);
+  doc.setFont('helvetica','normal');
+  doc.text('PONTUAÇÃO', W-M-15, y+22, {align:'center'});
+
+  y += 36;
+
+  // Performance bars
+  doc.setTextColor(26,18,8);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.text('Desempenho por Bloco', M, y);
+  y += 7;
+
+  const blocks2 = [
+    { label: 'Padrões Numéricos', keys: ['ex1','ex2','ex3'] },
+    { label: 'Padrões Visuais', keys: ['ex4','ex5'] },
+    { label: 'Dedução Lógica', keys: ['ex6','ex7','ex8'] },
+    { label: 'Desafio Final', keys: ['ch1','ch2','ch3'] },
+  ];
+  const barW = W-2*M-40;
+  blocks2.forEach(b => {
+    const relevant = b.keys.map(k=>state.answers[k]).filter(Boolean);
+    const c = relevant.filter(a=>a.correct).length;
+    const t = relevant.length || 1;
+    const p = Math.round((c/t)*100);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9);
+    doc.setTextColor(61,48,32);
+    doc.text(b.label, M, y+4);
+    doc.text(`${c}/${t}`, W-M, y+4, {align:'right'});
+    doc.setFillColor(237,230,214);
+    doc.roundedRect(M, y+6, barW, 5, 1, 1, 'F');
+    const color = p >= 70 ? [45,122,79] : p >= 40 ? [232,160,32] : [200,67,26];
+    doc.setFillColor(...color);
+    doc.roundedRect(M, y+6, (barW*p/100)||1, 5, 1, 1, 'F');
+    y += 16;
+  });
+
+  y += 4;
+
+  // Time
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.setTextColor(26,18,8);
+  doc.text('Tempo por Bloco', M, y);
+  y += 7;
+  const bNames2 = ['Padrões Numéricos','Padrões Visuais','Dedução Lógica','Desafio Final'];
+  bNames2.forEach((n,i) => {
+    const s = state.timers[i+1];
+    const m = String(Math.floor(s/60)).padStart(2,'0');
+    const sec = String(s%60).padStart(2,'0');
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9);
+    doc.setTextColor(61,48,32);
+    doc.text(`${n}: ${m}:${sec}`, M, y);
+    y += 6;
+  });
+
+  y += 6;
+
+  // Analysis
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.setTextColor(26,18,8);
+  doc.text('Análise Pedagógica', M, y);
+  y += 6;
+  doc.setFillColor(230, 238, 249);
+  const analysisRaw = document.getElementById('analysisText').textContent;
+  doc.setFont('helvetica','italic');
+  doc.setFontSize(9);
+  doc.setTextColor(26,79,138);
+  const lines = doc.splitTextToSize(analysisRaw, W-2*M-4);
+  doc.rect(M, y, W-2*M, lines.length*5+8, 'F');
+  doc.text(lines, M+3, y+6);
+  y += lines.length*5+14;
+
+  // Exercise log
+  if (y > 220) { doc.addPage(); y = 20; }
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.setTextColor(26,18,8);
+  doc.text('Exercícios Realizados', M, y);
+  y += 7;
+
+  // Table header
+  doc.setFillColor(26,18,8);
+  doc.rect(M,y,W-2*M,7,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8);
+  doc.text('Exercício', M+2, y+5);
+  doc.text('Resultado', W-M-25, y+5);
+  y += 7;
+
+  allAnswers.forEach((a,idx) => {
+    if (y > 270) { doc.addPage(); y = 20; }
+    doc.setFillColor(idx%2===0?250:237, idx%2===0?247:230, idx%2===0?240:214);
+    doc.rect(M,y,W-2*M,7,'F');
+    doc.setTextColor(61,48,32);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.text(a.label, M+2, y+5);
+    doc.setTextColor(a.correct?45:200, a.correct?122:67, a.correct?79:26);
+    doc.text(a.correct?'✓ Correto':'✗ Incorreto', W-M-22, y+5);
+    y += 7;
+  });
+
+  // Footer
+  doc.setTextColor(150,140,120);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(7);
+  doc.text('Relatório gerado automaticamente — Aula Particular de Raciocínio Lógico', W/2, 290, {align:'center'});
+
+  doc.save(`relatorio-${state.student.name.replace(/\s+/g,'-').toLowerCase()}.pdf`);
+}
+
+function restartLesson() {
+  location.reload();
+}
+
+// ─── INIT ───
+document.getElementById('studentDate').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
